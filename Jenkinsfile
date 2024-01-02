@@ -6,7 +6,7 @@ pipeline {
     stages{
         stage('Build Maven'){
             steps{
-                checkout([$class: 'GitSCM', branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/gladwin90/devops-demo']]])
+                checkout([$class: 'GitSCM', branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/Java-Techie-jt/devops-automation']]])
                 sh 'mvn clean install'
             }
         }
@@ -28,10 +28,14 @@ pipeline {
                 }
             }
         }
-        stage('Deploy to k8s'){
+        stage('Deploy to EKS Cluster'){
             steps{
-                script{
-                    kubernetesDeploy (configs: 'deploymentservice.yaml',kubeconfigId: 'k8sconfigpwd')
+                withAWS(credentials: 'john', region: 'us-west-2') {
+                   script {
+                        sh ('aws eks update-kubeconfig --name san-cluster1 --region us-west-2')
+                        sh "kubectl config current-context"
+                        sh "kubectl apply -f deploymentservice.yaml"
+		            }
                 }
             }
         }
